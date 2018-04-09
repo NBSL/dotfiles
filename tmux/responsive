@@ -20,7 +20,7 @@ if [ "$WIDTH" -ge "$LARGE" ]; then
 fi
 
 if [ "$WIDTH" -ge "$MEDIUM" ]; then
-  TIME="#[fg=colour255,bg=colour241,bold] $(date +'%H:%M:%S')"
+  TIME="#[fg=colour255,bg=colour241,bold] $(date +'%I:%M:%S %P')"
 fi
 
 if [ "$WIDTH" -ge "$SMALL" ]; then
