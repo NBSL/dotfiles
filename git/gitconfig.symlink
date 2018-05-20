@@ -16,7 +16,7 @@
         ui = true
 [core]
         excludesfile = ~/.gitignore
-        editor = vim
+	editor = atom --wait
 [apply]
         whitespace = nowarn
 [mergetool]
@@ -32,5 +32,5 @@
         # Setting to git 2.0 default to suppress warning message
         default = simple
 [user]
-	name = jldeen
-	email = jessde@microsoft.com
+	name = Greg Diermann
+	email = greg@gregdiermann.com

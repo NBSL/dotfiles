@@ -127,4 +127,5 @@ GIT_PS1_SHOWUPSTREAM="auto"
 export PATH=$PATH:/home/jldeen/bin
 
 # az cli
-# source /usr/bin/az
+# source /usr/bin/azsource /home/soller/.git-completion.bash
+source /home/soller/.git-completion.bash

@@ -1,0 +1,280 @@
+#!/bin/bash
+
+autoAddMntFromWindows() {
+# Gets all drive letters available in windows and adds any that are not available in wsl
+# OPTIONAL: set 1st input to '-s' or '-su' to attempt to mount the drive with root privileges using 'sudo'
+
+        # Get windows drive leters using 'wmic' function run in cmd
+        alias runcmd='/mnt/c/Windows/System32/cmd.exe /C'
+
+        local winDrives0="$(/mnt/c/Windows/System32/cmd.exe /C 'wmic logicaldisk get caption')"
+        winDrives0="${winDrives0//Caption/}"
+        winDrives0="${winDrives0//:/}"
+        winDrives0=($winDrives0)
+
+        # Isolate the actual drive letters and convert them to lower case
+
+        local winDrives=""
+        local nn0=1
+        local zz0=$((( ${#winDrives0[@]} - 1 )))
+        local tempVar=""
+
+        while (( $nn0 < $zz0 ))
+        do
+                tempVar="${winDrives0[$nn0]}"
+                tempVar="$(echo "${tempVar,,}")"
+                tempVar="$(echo "${tempVar}" | sed -E s/'^([a-z]*).*$'/'\1'/)"
+                tempVar="$(echo "${tempVar}" | sed -E s/'^[^a-z]+.*$'//)"
+
+                winDrives="${winDrives} ${tempVar}"
+
+                nn0=$((( $nn0 + 2 )))
+        done
+
+        winDrives="${winDrives## }"
+        winDrives="${winDrives% }"
+        winDrives=($winDrives)
+
+        # Get WSL mounted drives
+
+        local -a wslDrives0=""
+        local -a wslDrives=""
+
+        mapfile -t wslDrives0 < <(echo "$(ls /mnt/)")
+
+        nn0=0
+        zz0=0
+        while (( $zz0 < ${#wslDrives0[@]} ))
+        do
+                if (( $(existCheck -d "/mnt/${wslDrives0[$zz0]}") == 1 )); then
+                        wslDrives[$nn0]="${wslDrives0[$zz0]}"
+                        nn0=$((( $nn0 + 1 )))
+                fi
+                
+                zz0=$((( $zz0 + 1 )))
+        done
+
+        # Compare drive list from Windows to drive list from WSL (from /mnt/*).
+        # Add any letters that are missing from /mnt/* but are present in Windows.
+
+        local numWin=${#winDrives[@]}
+        local numWsl=${#wslDrives[@]}
+
+        # Indexing Variables:
+        # 'tempVar' and 'nn0' are used for Windows drives.
+        # 'tempVar2' and 'zz0' are used for WSL drives.
+        local tempFlag=0
+        local tempVar2=""
+
+		# display current status
+        echo " "
+        echo "Current Windows 10 Drive Letter List: ${winDrives[@]} --> ${#winDrives[@]} drive(s)"
+        echo "Current WSL / Bash Drive Letter List: ${wslDrives[@]} --> ${#wslDrives[@]} drive(s)"
+        echo " "
+
+		# setup counting stats
+        local numDriveAdd=0
+        local numDriveAddAttempted=0
+        local drivesMounted=""
+        local drivesMountedAttempted=""
+
+        local suFlag=0
+
+        if [[ "$1" == "-s" ]] || [[ "$1" == "-su" ]]; then
+                suFlag=1
+        else
+                echo "WARNING: This function is running without root privileges, which could make mounting impossible."
+                echo "To run this function with root privileges, use the '-su' or '-s' flag (these do the same thing - they execute the 'mount' command using 'sudo')."
+        fi
+
+        local makeDirFlag=0
+        nn0=0
+
+        # Loop over Windows drives
+        while (( $nn0 < $numWin ))
+        do
+                # Get current Windows drive letter
+                tempVar="${winDrives[$nn0]}"
+                if [[ "${wslDrives[@]//${tempVar}/}" != "${wslDrives[@]}" ]]; then
+                        # windows drive already exists in WSL..
+                        echo " "
+                        echo "/mnt/${tempVar} exists and is a valid mount point"
+                        tempFlag=1
+                else
+                        # windows drive is missing from WSL. Try to add it.
+                        tempFlag=0
+                fi
+
+                if (( $tempFlag == 0 )); then
+
+                        echo " "
+                        # make mount point if it doesnt currently exist
+                        makeDirFlag=0
+                        if ! [[ -d "/mnt/${tempVar}" ]]; then
+
+                                makeDirFlag=2
+
+                                if (( ${suFlag} == 1 )); then
+                                        eval "sudo mkdir /mnt/${tempVar}"
+                                else
+                                        eval "mkdir /mnt/${tempVar}"
+                                fi
+
+                                if [[ -d "/mnt/${tempVar}" ]]; then
+                                        makeDirFlag=1
+                                fi
+                        fi
+
+                        # attempt to mount drive
+                        if (( $makeDirFlag == 2 )); then
+                                echo "NOTICE: A failed attempt was made to generate a mount point at /mnt/${tempVar}, making mounting impossible. This drive has NOT been mounted."
+                        else
+                                if (( ${suFlag} == 1 )); then
+                                        echo "Attempting to run: sudo mount -t drvfs ${tempVar}: /mnt/${tempVar}"
+                                        eval "sudo mount -t drvfs ${tempVar}: /mnt/${tempVar}"
+                                else
+                                        echo "Attempting to run: mount -t drvfs ${tempVar}: /mnt/${tempVar}"
+                                        eval "mount -t drvfs ${tempVar}: /mnt/${tempVar}"
+                                fi
+                        fi
+
+                        # indicate if mounting was successful or not and update stats
+                        if (( $(existCheck -d "/mnt/${tempVar}") == 1 )); then
+                                echo "NOTICE: Drive ${tempVar}: has been successfully mounted in WSL to /mnt/${tempVar}"
+                                numDriveAdd=$((( $numDriveAdd + 1 )))
+                                drivesMounted="${drivesMounted} ${tempVar}"
+                        elif (( $makeDirFlag != 2 )); then
+                                echo "NOTICE: A failed attempt was made to mount drive ${tempVar}: to /mnt/${tempVar}. This drive has NOT been mounted."
+                                echo "NOTE:   It is possible this drive is not a storage device at all (e.g., it could be something like a CD-ROM drive)."
+                                if (( $makeDirFlag == 1 )); then
+                                        # the code made this directory but failed to mount the drive. This directory didnt previously exist. Remove it.
+                                        if (( ${suFlag} == 1 )); then
+                                                eval "sudo \\rm -r /mnt/${tempVar}"
+                                        else
+                                                eval "\\rm -r /mnt/${tempVar}"
+                                        fi
+                                fi
+                        fi
+                        numDriveAddAttempted=$((( $numDriveAddAttempted + 1 )))
+                        drivesMountedAttempted="${drivesMountedAttempted} ${tempVar}"
+                fi
+
+                nn0=$((( $nn0 + 1 )))
+        done
+
+        drivesMounted="${drivesMounted## }"
+        drivesMountedAttempted="${drivesMountedAttempted## }"
+
+		# display final stats
+        echo " "
+        echo " "
+        echo "The Automated Drive Mounting Operation has Completed!!!!!"
+        echo " "
+        echo " "
+        echo "A total of $numDriveAddAttempted drives (${drivesMountedAttempted// / , }) were found in Windows but were missing in WSL."
+        echo " "
+        echo "The function has attempted to automatically mount these drives in WSL to /mnt/<drive letter>"
+        echo " "
+        echo "Of these drives, a total of $numDriveAdd drives (${drivesMounted// / , }) were successfully mounted to /mnt/<drive letter>."
+        echo " "
+        echo " "
+		
+	}
+	
+	
+	
+	
+	
+existCheck() {
+# Checks if input exists and (if a directory) has content (other than '.' and '..')
+#
+# IF NO FLAGS:
+# Returns 0 if the input does not exist
+# Returns 1 if the directory exists and has content
+# Returns 10 if the directory exists but is empty
+# Returns 2 if the input exists and is a file
+# Returns 3 if the input exists as an alias
+# Returns 4 if the input exists as a function name
+#
+# flags '-ne' '--no[t]-exist[s]' returns 1 if the input doesnt exist, otherwise returns 0
+# flags '-d' and '-dir' and '--directory' returns 1 if the input is a non-empty directory, otherwise returns 0
+# flags '-ed' and '--empty-dir' and '--empty-directory' returns 1 if the input is an empty directory, otherwise returns 0
+# flags '-f' and '--file' returns 1 if the input is a file, otherwise returns 0
+# flags '-a' and '--alias' returns 1 if the input is an, otherwise returns 0
+# flags '-fun' and '--function' returns 1 if the input is a function name, otherwise returns 0
+#
+# NOTE: assumes multiple inputs are meant to represent a input with spaces
+
+        local inputName=""
+        local inputType=""
+        local checkType=""
+
+        if [[ "$1" == "-ne" ]] || [[ $1 =~ '^--not?-exists?$' ]]; then
+                checkType=0
+                shift 1
+        elif [[ "$1" == "-d" ]] || [[ "$1" == "-dir" ]] || [[ "$1" == "--directory" ]]; then
+                checkType=1
+                shift 1
+        elif [[ "$1" == "-de" ]] ||     [[ "$1" == "--empty-dir" ]] || [[ "$1" == "--empty-directory" ]]; then
+                checkType=10
+                shift 1
+        elif [[ "$1" == "-f" ]] ||      [[ "$1" == "--file" ]]; then
+                checkType=2
+                shift 1
+        elif [[ "$1" == "-a" ]] ||      [[ "$1" == "--alias" ]]; then
+                checkType=3
+                shift 1
+        elif [[ "$1" == "-fun" ]] || [[ "$1" == "--function" ]]; then
+                checkType=4
+                shift 1
+        fi
+
+        inputName="${@}"
+
+        if [[ -f "${inputName}" ]]; then
+                # input is a file, not a directory
+                inputType=2
+
+        elif [[ -d "${inputName}" ]]; then
+                if [[ -z "$(ls -A "${inputName}")" ]]; then
+                        # input exists, but is empty
+                        inputType=10
+                else
+                        # input exists and has content
+                        inputType=1
+                fi
+        else
+                local FAsearch=""
+
+                # combine standard bashrc and function and alias files
+                # look for lines that have 'alias <name>=' or '<name>() {'
+                # remove results that start with '#'
+                FAsearch="$(cat "${HOME}/.bash_aliases" "${HOME}/.bash_functions" "${HOME}/.bashrc" | grep -E "alias ${inputName}|${inputName}\(\) \{" | sed -e s/'^[^0-9a-zA-Z]*#.*$'// | grep -E '.+')"
+				
+                if [[ -z "${FAsearch}" ]]; then
+                        # input does not exist
+                        inputType=0
+                elif [[ "${FAsearch//alias/}" != "${FAsearch}" ]]; then
+                        # input is an alias
+                        inputType=3
+                else
+                        # input is a function name
+                        inputType=4
+                fi
+        fi
+
+        if [[ -z "${inputType}" ]]; then
+                inputType=0;
+        fi
+
+        if [[ -z ${checkType} ]]; then
+                echo ${inputType}
+        else
+                if (( ${checkType} == ${inputType} )); then
+                        echo 1
+                else
+                        echo 0
+                fi
+        fi
+
+	}

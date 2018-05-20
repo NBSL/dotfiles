@@ -2,12 +2,39 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:~/.fabric8/bin
 export GOPATH=/mnt/d/Sync/Personal/Projects/Go
+export DISPLAY=:0
 unsetopt BG_NICE
+
+# # mount /mnt/c to /c if not already done
+# if [ ! -d "/c" ] || [ ! "$(ls -A /c)" ]; then
+#   echo "Requiring root password to $(tput setaf 6)mount --bind /mnt/c /c$(tput sgr 0)"
+#   sudo mkdir -p /c
+#   sudo mount --bind /mnt/c /c
+# fi
+#
+# # Change from /mnt/c/... to /c/...
+# if [ "$(pwd | cut -c -7)" = "/mnt/c/" ]; then
+#   cd "$(pwd | cut -c 5-)"
+# fi
+#
+# # mount /mnt/d to /d if not already done
+# if [ ! -d "/d" ] || [ ! "$(ls -A /d)" ]; then
+#   echo "Requiring root password to $(tput setaf 6)mount --bind /mnt/d /d$(tput sgr 0)"
+#   sudo mkdir -p /d
+#   sudo mount --bind /mnt/d /d
+# fi
+#
+# # Change from /mnt/d/... to /d/...
+# if [ "$(pwd | cut -c -7)" = "/mnt/d/" ]; then
+#   cd "$(pwd | cut -c 5-)"
+# fi
 
 # Path to your oh-my-zsh installation.
 export ZSH=~/.oh-my-zsh
 export TERM=screen-256color
+eval `dircolors ~/.dircolors`
 
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
@@ -20,7 +47,7 @@ ZSH_THEME="powerlevel9k/powerlevel9k"
 # POWERLEVEL9K_PUBLIC_IP_HOST='http://ident.me'
 
 # zsh tmux settings
-ZSH_TMUX_AUTOSTART='true'
+ZSH_TMUX_AUTOSTART='false'
 
 ## Powerlevel9k Settings
 POWERLEVEL9K_HISTORY_BACKGROUND='green'
@@ -37,26 +64,17 @@ POWERLEVEL9K_MULTILINE_LAST_PROMPT_PREFIX="%F{red} \Uf1d0 %f %F{yellow
 POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(dir vcs)
 POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status history)
 
-# # Refresh Function - https://babushk.in/posts/renew-environment-tmux.html
-# if [ -n "$TMUX" ]; then                                                                               
-#   function refresh {                                                                                
-#     export $(tmux show-environment | grep "^SSH_AUTH_SOCK")                                       
-#     export $(tmux show-environment | grep "^DISPLAY")                                               
-#   }                                                                                                 
-# else                                                                                                  
-#   function refresh { }                                                                              
-# fi
 
 # # Then, I define a preexec hook that calls refresh before each new command that gets executed:
-# function preexec {                                                                                    
-#     refresh                                                                                           
+# function preexec {
+#     refresh
 # }
 
 # POWERLEVEL9K_TIME_FORMAT="%D{%T | %m.%d.%y}"
-## 
+##
 
 # Default username to hide "user@hostname" info
-DEFAULT_USER="jldeen"
+DEFAULT_USER="Soller"
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -133,6 +151,7 @@ source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 #
 
 # Example aliases
+alias code="cmd.exe /c code.cmd"
 alias zshconfig="code ~/.zshrc"
 alias ohmyzsh="code ~/.oh-my-zsh"
 alias k="kubectl"
@@ -147,4 +166,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export PATH="$HOME/.rbenv/bin:$PATH"
+
 eval "$(rbenv init -)"
+function gi() { curl -L -s https://www.gitignore.io/api/$@ ;}
+export PATH="$HOME/.rbenv/bin:$PATH"

@@ -165,10 +165,10 @@ else
 fi
 
 # symlink .dotfiles bin to ~
-ln -s $HOME/.dotfiles/bin $HOME/bin
+ln -s $DOTFILES_ROOT/bin $HOME/bin
 
 # # symlink .dotfiles tmux to ~ & plugin mgr install
-ln -s $HOME/.dotfiles/tmux $HOME/.tmux
+ln -s $DOTFILES_ROOT/tmux $HOME/.tmux
 # Tmux Plugin Manager
 echo ''
 echo "Now installing tmux plugin manager..."
@@ -187,7 +187,7 @@ then
   # symlink VSCode User Settings
   if [ -e $HOME/.config/Code/User ]
   then
-    ln -s $HOME/.dotfiles/code/settings.json $HOME/.config/Code/User/settings.json && echo "VS Code settings.json applied successfully!"
+    ln -s $DOTFILES_ROOT/code/settings.json $HOME/.config/Code/User/settings.json && echo "VS Code settings.json applied successfully!"
   else
     echo "No installation of VS Code found. Will not attempt to symlink VS Code settings.json."
   fi
