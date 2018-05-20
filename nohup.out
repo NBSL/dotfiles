@@ -1,0 +1,23 @@
+Unable to init server: Could not connect: Connection refused
+Unable to init server: Could not connect: Connection refused
+You need to run terminator in an X environment. Make sure $DISPLAY is properly set
+libGL error: No matching fbConfigs or visuals found
+libGL error: failed to load driver: swrast
+
+(terminator:26990): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffcf2a86e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:26990): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffcf2a84e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:26990): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffcf2a82e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:26990): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffcf2a88e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+<window.Window object at 0x7f1fb6961550 (terminatorlib+window+Window at 0x7fffcf1a6260)> is not in registered window list
+
+(terminator:454): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffc6b9c6e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:454): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffc6b9c4e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:454): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffc6b9c2e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+
+(terminator:454): Gtk-WARNING **: Allocating size to GtkVScrollbar 0x7fffc6b9c8e0 without calling gtk_widget_get_preferred_width/height(). How does the code know the size to allocate?
+<window.Window object at 0x7fa75ff11550 (terminatorlib+window+Window at 0x7fffc6a84260)> is not in registered window list
